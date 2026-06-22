@@ -5,23 +5,13 @@
 
 **Customer:** Erie Indemnity Company
 **Environment:** Non-prod
-**Patch Date:** 2026-06-17
+**Patch Date:** 2026-06-23
 **Target Patch:** Patch 7
 
 ### Components to be Patched
 
 **IBM Software Hub Components ** cpd_platform, datastage_ent_plus, ws_pipelines
 **Scheduling Service:** ✓ Included
-
-### Service Instances to be Updated
-
-**Services with Bulk Update (--all flag):**
-- DataStage Enterprise Plus (datastage_ent_plus)
-- Watson Studio Pipelines (ws_pipelines)
-
-### Air-Gapped Environment
-
-This is an air-gapped environment. Image mirroring steps are included.
 
 
 ---
@@ -69,42 +59,23 @@ oc get scheduling -A
 
 #### 2. Generate Cluster-Scoped Resources for Scheduling Service
 
-Generate the `cluster_scoped_resources.yaml` file for the scheduling service:
-
+Generate the `cluster_scoped_resources.yaml` file for the scheduling service
 ```bash
 cpd-cli manage case-download \
-  --components=scheduler \
-  --release=5.3.1 \
-  --patch_id=${PATCH_ID} \
-  --scheduler_ns=${PROJECT_SCHEDULING_SERVICE} \
-  --case_download=false \
-  --cluster_resources=true
+--components=scheduler \
+--release=5.3.1 \
+--patch_id=${PATCH_ID} \
+--scheduler_ns=${PROJECT_SCHEDULING_SERVICE} \
+--case_download=false \
+--cluster_resources=true
 ```
 
-Change to the work directory:
-
+Copy and apply the cluster-scoped resources command returned in the terminal
 ```bash
-cd cpd-cli-workspace/olm-utils-workspace/work
+oc apply -f <cpd-cli-workspace/...work>/cluster_scoped_resources.yaml --server-side --force-conflicts
 ```
 
-Log in to Red Hat OpenShift Container Platform as a cluster administrator:
-
-```bash
-${OC_LOGIN}
-```
-
-**Remember:** `OC_LOGIN` is an alias for the `oc login` command.
-
-Apply the cluster-scoped resources:
-
-```bash
-oc apply -f cluster_scoped_resources.yaml \
-  --server-side \
-  --force-conflicts
-```
-
-**Optional:** Rename the file to keep a record:
-
+**Optional:** Rename the file to keep a record
 ```bash
 mv cluster_scoped_resources.yaml 5.3.1-PATCH-${PROJECT_SCHEDULING_SERVICE}-cluster_scoped_resources.yaml
 ```
@@ -118,8 +89,7 @@ mv cluster_scoped_resources.yaml 5.3.1-PATCH-${PROJECT_SCHEDULING_SERVICE}-clust
 
 #### 1. Verify Environment Variables
 
-Ensure environment variables are set from previous steps:
-
+Ensure environment variables are set from previous steps
 ```bash
 echo $PROJECT_SCHEDULING_SERVICE
 echo $PATCH_ID
@@ -129,19 +99,17 @@ echo $IMAGE_PULL_SECRET
 
 #### 2. Apply Patch to Scheduling Service
 
-**Applying specific patch:**
-
+Applying specific patch
 ```bash
 cpd-cli manage apply-patch \
-  --release=5.3.1 \
-  --patch_id=${PATCH_ID} \
-  --scheduler_ns=${PROJECT_SCHEDULING_SERVICE} \
-  --image_pull_prefix=${IMAGE_PULL_PREFIX} \
-  --image_pull_secret=${IMAGE_PULL_SECRET}
+--release=5.3.1 \
+--patch_id=${PATCH_ID} \
+--scheduler_ns=${PROJECT_SCHEDULING_SERVICE} \
+--image_pull_prefix=${IMAGE_PULL_PREFIX} \
+--image_pull_secret=${IMAGE_PULL_SECRET}
 ```
 
 #### 3. Monitor Scheduling Service Pods
-
 ```bash
 oc get pods --namespace=${PROJECT_SCHEDULING_SERVICE}
 ```
@@ -152,36 +120,23 @@ oc get pods --namespace=${PROJECT_SCHEDULING_SERVICE}
 
 #### 1. Generate Cluster-Scoped Resources
 
-Generate the `cluster_scoped_resources.yaml` file for the instance:
-
+Generate the `cluster_scoped_resources.yaml` file for the instance
 ```bash
 cpd-cli manage case-download \
-  --components=${COMPONENTS_TO_PATCH} \
-  --release=5.3.1 \
-  --patch_id=${PATCH_ID} \
-  --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
-  --case_download=false \
-  --cluster_resources=true
+--components=${COMPONENTS_TO_PATCH} \
+--release=5.3.1 \
+--patch_id=${PATCH_ID} \
+--operator_ns=${PROJECT_CPD_INST_OPERATORS} \
+--case_download=false \
+--cluster_resources=true
 ```
 
-Change to the work directory:
-
+Copy and apply the cluster-scoped resources command returned in the terminal
 ```bash
-cd cpd-cli-workspace/olm-utils-workspace/work
+oc apply -f <cpd-cli-workspace/...work>/cluster_scoped_resources.yaml --server-side --force-conflicts
 ```
 
-#### 2. Apply Cluster-Scoped Resources
-
-Apply the cluster-scoped resources:
-
-```bash
-oc apply -f cluster_scoped_resources.yaml \
-  --server-side \
-  --force-conflicts
-```
-
-**Optional:** Rename the file to keep a record:
-
+**Optional:** Rename the file to keep a record
 ```bash
 mv cluster_scoped_resources.yaml 5.3.1-PATCH-${PROJECT_CPD_INST_OPERATORS}-cluster_scoped_resources.yaml
 ```
@@ -194,17 +149,19 @@ mv cluster_scoped_resources.yaml 5.3.1-PATCH-${PROJECT_CPD_INST_OPERATORS}-clust
 
 #### 1. Verify Prerequisites
 
-Before applying the patch, verify environment variables and component status:
+Before applying the patch, verify environment variables and component status
 
+Verify environment variables
 ```bash
-# Verify environment variables
 echo $PROJECT_CPD_INST_OPERATORS
 echo $PROJECT_CPD_INST_OPERANDS
 echo $PATCH_ID
 echo $IMAGE_PULL_PREFIX
 echo $IMAGE_PULL_SECRET
+```
 
-# Check all components are ready
+Check all components are ready
+```bash
 cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
 ```
 
@@ -212,48 +169,65 @@ cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
 
 **Note:** This command applies patches to ALL installed services and components and runs for an extended period (typically 30-90 minutes). Using `nohup` ensures the command continues if the terminal session disconnects.
 
-**Applying specific patch:**
-
+Applying specific patch
 ```bash
 nohup cpd-cli manage apply-patch \
-  --release=5.3.1 \
-  --patch_id=${PATCH_ID} \
-  --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
-  --instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --image_pull_prefix=${IMAGE_PULL_PREFIX} \
-  --image_pull_secret=${IMAGE_PULL_SECRET} > patch_output.log 2>&1 &
+--release=5.3.1 \
+--patch_id=${PATCH_ID} \
+--operator_ns=${PROJECT_CPD_INST_OPERATORS} \
+--instance_ns=${PROJECT_CPD_INST_OPERANDS} \
+--image_pull_prefix=${IMAGE_PULL_PREFIX} \
+--image_pull_secret=${IMAGE_PULL_SECRET} > patch_output.log 2>&1 &
 ```
 
 #### 3. Monitor Patching Progress
 
-Monitor the output log:
-
+Monitor the output log
 ```bash
 tail -f -n 100 patch_output.log
 ```
 
 Check for completion message: `[SUCCESS] ... The apply-patch command ran successfully.`
 
-Monitor the overall patching progress:
-
+Monitor the overall patching progress
 ```bash
-# Watch component status
-watch -n 60 'cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}'
+cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
+```
+
+**Note:** You can also monitor specific CR progress as well
+
+Check datastage CR status
+```bash
+oc get datastage
+```
+
+Example output
+```bash
+NAME        VERSION   RECONCILED   STATUS      PERCENT   AGE
+datastage   5.3.3     5.3.3        Completed   100%      2d19h
+```
+
+Check pipelines CR status
+```bash
+oc get wspipelines
+```
+
+Example output
+```bash
+NAME        VERSION   RECONCILED   STATUS      PERCENT   AGE
+wspipelines   5.3.3     5.3.3        Completed   100%      2d19h
 ```
 
 #### 4. Confirm Operands Status
 
-Confirm that the status of all operands is `Completed`:
-
+Confirm that the status of all operands is `Completed`
 ```bash
-cpd-cli manage get-cr-status \
-  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
+cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
 ```
 
-Check for any pods not in Running state:
-
+Check for any pods not in Running state
 ```bash
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep -v Running | grep -v Completed
+oc get po -A -owide | egrep -v '([0-9])/\1' | egrep -v 'Completed'
 ```
 
 # Post-Patch Tasks
@@ -262,125 +236,32 @@ oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep -v Running | grep -v Complete
 
 #### 1. Verify Existing Profile
 
-Confirm your CPD profile is set up and working:
-
+Confirm your CPD profile is set up and working
 ```bash
-cpd-cli service-instance list --profile=cpd-admin
-```
-
-#### 2. Verify Patched Instance Status
-
-Check the status of the patched instance:
-
-```bash
-cpd-cli manage get-cr-status \
-  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
-```
-
-## Update Service Instances
-
-**IBM Documentation:** [Updating service instances](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=patches-updating-service-instances)
-
-**Note:** Some services (Planning Analytics, Watson Discovery, Watson OpenScale, Watson Speech, watsonx Assistant, watsonx Orchestrate) are automatically updated during patching and require no manual action.
-
-### Common Monitoring and Verification Procedures
-
-After updating any service instance, use these commands to monitor and verify:
-
-**Monitor instance status:**
-```bash
-watch -n 30 'cpd-cli service-instance status \
-  --profile=cpd-admin \
-  --service-type=<service-type> \
-  --all-namespaces'
-```
-
-**Verify completion:**
-```bash
-# List all instances
-cpd-cli service-instance list \
-  --profile=cpd-admin \
-  --service-type=<service-type> \
-  --all-namespaces
-
-# Check specific instance details
-cpd-cli service-instance status \
-  --profile=cpd-admin \
-  --service-type=<service-type> \
-  --instance-name=<instance-name> \
-  --namespace=<instance-namespace>
+cpd-cli service-instance list --profile=${CPD_PROFILE_NAME}
 ```
 
 ---
-
-### Service Instance Updates
-
-#### DataStage Enterprise Plus
-
-DataStage Enterprise Plus service instances
-
-Update all instances:
-```bash
-cpd-cli service-instance update \
-  --profile=cpd-admin \
-  --service-type=datastage_ent_plus \
-  --all
-```
-
-*Use [Common Monitoring and Verification Procedures](#common-monitoring-and-verification-procedures) above with `service-type=datastage_ent_plus`*
-
----
-#### Watson Studio Pipelines
-
-Watson Studio Pipelines service instances
-
-Update all instances:
-```bash
-cpd-cli service-instance update \
-  --profile=cpd-admin \
-  --service-type=ws_pipelines \
-  --all
-```
-
-*Use [Common Monitoring and Verification Procedures](#common-monitoring-and-verification-procedures) above with `service-type=ws_pipelines`*
-
----
-
-
-
 
 ## Verify Patch Application
 
 #### 1. Verify IBM Software Hub and Component Versions
 
-Confirm the platform and all components are running the patched version:
-
+Confirm the platform and all components are running the patched version
 ```bash
-cpd-cli manage get-cr-status \
-  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
+cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
 ```
 
 #### 2. Verify Pod Health
 
-Check that all pods are running and healthy:
-
+Check for pods not in Running state
 ```bash
-# Check for pods not in Running state
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep -v Running | grep -v Completed
-
-# Check for pods with high restart counts
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} --sort-by=.status.containerStatuses[0].restartCount | tail -20
-
-# Check for pods in error states
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} --field-selector=status.phase!=Running,status.phase!=Succeeded
+oc get po -A -owide | egrep -v '([0-9])/\1' | egrep -v 'Completed'
 ```
 
 #### 3. Verify Service Instance Status
 
-Check that all service instances are ready:
-
+Check that all service instances are ready
 ```bash
-# List all service instances
-cpd-cli service-instance list \
-  --profile=cpd-admin \
-  --all-namespaces
+cpd-cli service-instance list --profile=${CPD_PROFILE_NAME}
+```
