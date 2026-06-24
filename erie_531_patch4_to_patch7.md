@@ -232,17 +232,6 @@ oc get po -A -owide | egrep -v '([0-9])/\1' | egrep -v 'Completed'
 
 # Post-Patch Tasks
 
-## Verify CPD Profile
-
-#### 1. Verify Existing Profile
-
-Confirm your CPD profile is set up and working
-```bash
-cpd-cli service-instance list --profile=${CPD_PROFILE_NAME}
-```
-
----
-
 ## Verify Patch Application
 
 #### 1. Verify IBM Software Hub and Component Versions
