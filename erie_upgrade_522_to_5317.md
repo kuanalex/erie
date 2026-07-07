@@ -468,12 +468,17 @@ cpd-cli manage get-rsi-patch-info --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
 
 ## Upgrading DataStage Enterprise Plus
 
-### Run the cpd-cli manage login-to-ocp command to log in to the cluster
+Run the cpd-cli manage login-to-ocp command to log in to the cluster
 ```
 ${CPDM_OC_LOGIN}
 ```
 
-### Upgrading the operator and custom resource for the service
+Remove hotfix image_digests from CCS prior to starting the DataStage upgrade
+```bash
+oc patch ccs ccs-cr -n cpd-instance --type=json -p='[{"op": "remove", "path": "/spec/image_digests"}]'
+```
+
+Upgrading the operator and custom resource for the service
 ```bash
 cpd-cli manage install-components \
 --license_acceptance=true \
@@ -494,12 +499,12 @@ cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} --co
 
 ## Upgrading Orchestration Pipelines
 
-### Run the cpd-cli manage login-to-ocp command to log in to the cluster
+Run the cpd-cli manage login-to-ocp command to log in to the cluster
 ```bash
 ${CPDM_OC_LOGIN}
 ```
 
-### Upgrading the operator and custom resource for the service
+Upgrading the operator and custom resource for the service
 ```bash
 cpd-cli manage install-components \
 --license_acceptance=true \
