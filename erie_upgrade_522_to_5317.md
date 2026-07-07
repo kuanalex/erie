@@ -64,6 +64,198 @@ If the IBM Certificate manager (ibm-cert-manager) is installed on your cluster, 
 
 [Migrating from the IBM Certificate manager to the Red Hat OpenShift certificate manager](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=upgrading-migrating-red-hat-openshift-certificate-manager)
 
+### Backing up your existing certificates
+
+Before you uninstall the IBM Certificate manager, back up the Issuer and Certificate custom resources
+
+Create a temporary project where you can validate that the IBM Certificate manager is working correctly
+```bash
+oc new-project cert-mgr-test
+```
+
+Back up the Issuer custom resources to a file named issuer_list.yaml
+```bash
+oc get issuers.cert-manager.io -A -o yaml > issuer_list.yaml
+```
+
+Back up the Certificate custom resources to a file named certificate_list.yaml
+```bash
+oc get certificates.cert-manager.io -A -o yaml > certificate_list.yaml
+```
+
+Verify that IBM Certificate manager is working correctly
+
+Create an Issuer custom resource called verify-issuer
+```bash
+cat <<EOF |oc apply -f -
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: verify-issuer
+spec:
+  selfSigned: {}
+EOF
+```
+
+Apply the contents of the issuer_list.yaml file
+```bash
+oc apply -f issuer_list.yaml
+```
+
+Create a Certificate custom resource called verify-certificate
+```bash
+cat <<EOF |oc apply -f -
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: verify-certificate
+spec:
+  commonName: verify-certificate
+  secretName: verify-secret
+  issuerRef:
+    name: verify-issuer
+    kind: Issuer
+    group: cert-manager.io
+EOF
+```
+
+Apply the contents of the certificate_list.yaml file
+```bash
+oc apply -f certificate_list.yaml
+```
+
+Verify that the verify-certificate custom resource is ready
+```bash
+oc get issuers.cert-manager.io
+```
+
+### Uninstall IBM Certificate manager 
+
+Before you can install the Red Hat® OpenShift® certificate manager (cert-manager Operator), you must uninstall the IBM Certificate manager
+
+Get the list of the IBM Certificate manager configuration instances
+```bash
+oc get certmanagerconfig -n ${PROJECT_CERT_MANAGER}
+```
+
+Delete each configuration instance returned by the preceding command
+```bash
+oc delete certmanagerconfig <name> -n ${PROJECT_CERT_MANAGER}
+```
+
+Uninstall the IBM Certificate manager operator
+
+Delete the operator subscription:
+```bash
+oc delete sub ibm-cert-manager-operator -n ${PROJECT_CERT_MANAGER}
+```
+
+Find any ibm-cert-manager cluster service versions (CSVs)
+```bash
+oc get csv -n ${PROJECT_CERT_MANAGER} | grep ibm-cert-manager
+```
+
+Delete the CSVs returned by the previous command
+```bash
+oc delete csv <name> -n ${PROJECT_CERT_MANAGER}
+```
+
+Verify that the following IBM Certificate manager resources are deleted
+
+Check for any deployments with the app.kubernetes.io/component=cert-manager label
+```bash
+oc get deployments -n ${PROJECT_CERT_MANAGER} -l app.kubernetes.io/component=cert-manager
+```
+
+If any deployments are returned by the preceding command, delete them
+```bash
+oc delete deployments <name> -n ${PROJECT_CERT_MANAGER}
+```
+
+Check for any services with the following app=ibm-cert-manager-webhook label
+```bash
+oc get service -n ${PROJECT_CERT_MANAGER} -l app=ibm-cert-manager-webhook
+```
+
+If any services are returned by the preceding command, delete them
+```bash
+oc delete service <name> -n ${PROJECT_CERT_MANAGER}
+```
+
+Check for any cert-manager-webhook mutating web hook configurations
+```bash
+oc get mutatingwebhookconfiguration -n ${PROJECT_CERT_MANAGER} | grep cert-manager-webhook
+```
+
+If any mutating web hook configurations are returned by the preceding command, delete them
+```bash
+oc delete mutatingwebhookconfiguration <name> -n ${PROJECT_CERT_MANAGER}
+```
+
+Check for any cert-manager-webhook validating web hook configurations
+```bash
+oc get validatingwebhookconfiguration -n ${PROJECT_CERT_MANAGER} | grep cert-manager-webhook
+```
+
+If any validating web hook configurations are returned by the preceding command, delete them
+```bash
+oc delete validatingwebhookconfiguration <name> -n ${PROJECT_CERT_MANAGER}
+```
+
+### Mirroring Red Hat OpenShift certificate manager images to a private container registry
+
+[If your cluster pulls images from a private container registry, you must mirror the Red Hat OpenShift certificate manager images to your private container registry before you install the certificate manager.](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=manager-mirroring-red-hat-openshift-certificate-images)
+
+### Installing the Red Hat OpenShift Container Platform cert-manager Operator
+
+[You must install Red Hat OpenShift Container Platform cert-manager Operator before you upgrade to IBM Software Hub Version 5.3](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=manager-installing-cert-operator)
+
+Verify that the OLM subscription is created by running the following command
+```bash
+oc get subscription -n cert-manager-operator
+```
+
+Example output
+```bash
+NAME                              PACKAGE                           SOURCE             CHANNEL
+openshift-cert-manager-operator   openshift-cert-manager-operator   redhat-operators   stable-v1
+```
+
+Verify whether the Operator is successfully installed by running the following command
+```bash
+oc get csv -n cert-manager-operator
+```
+
+Example output
+```bash
+NAME                            DISPLAY                                       VERSION   REPLACES                        PHASE
+cert-manager-operator.v1.13.0   cert-manager Operator for Red Hat OpenShift   1.13.0    cert-manager-operator.v1.12.1   Succeeded
+```
+
+Verify that the status cert-manager Operator for Red Hat OpenShift is Running by running the following command
+```bash
+oc get pods -n cert-manager-operator
+```
+
+Example output
+```bash
+NAME                                                        READY   STATUS    RESTARTS   AGE
+cert-manager-operator-controller-manager-695b4d46cb-r4hld   2/2     Running   0          7m4s
+```
+
+Verify that the status of cert-manager pods is Running by running the following command
+```bash
+oc get pods -n cert-manager
+```
+
+Example output
+```bash
+NAME                                       READY   STATUS    RESTARTS   AGE
+cert-manager-58b7f649c4-dp6l4              1/1     Running   0          7m1s
+cert-manager-cainjector-5565b8f897-gx25h   1/1     Running   0          7m37s
+cert-manager-webhook-9bc98cbdd-f972x       1/1     Running   0          7m40s
+```
+
 
 # Pre-upgrade
 
@@ -327,6 +519,26 @@ Once the above command `cpd-cli manage install-components` completed successfull
 cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} --components=ws_pipelines
 ```
 
+### Upgrade the cpdbr service
+
+Export the OADP_OPERATOR_NS environment variable
+```bash
+export OADP_OPERATOR_NS=<oadp-operator-project>
+```
+
+Upgrade the cpdbr-tenant component for the instance for NetApp Trident Protect without the scheduling service
+```bash
+cpd-cli oadp install \
+--component=cpdbr-tenant \
+--cpdbr-hooks-image-prefix=${PRIVATE_REGISTRY_LOCATION}/cpopen/cpd \
+--cpfs-image-prefix=${PRIVATE_REGISTRY_LOCATION}/cpopen/cpfs \
+--namespace=${OADP_OPERATOR_NS} \
+--tenant-operator-namespace=${PROJECT_CPD_INST_OPERATORS} \
+--skip-recipes=true \
+--upgrade=true \
+--log-level=debug \
+--verbose
+```
 
 # Post-upgrade Validation
 
