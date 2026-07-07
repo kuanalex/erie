@@ -16,25 +16,25 @@
 
 ## Pre-requisites
 
-#### Backup of the cluster is done
+### Backup of the cluster is done
 
 Backup your Cloud Pak for Data cluster before the upgrade
 
 **Note:**
 Make sure there are no scheduled backups conflicting with the scheduled upgrade
 
-#### The image mirroring completed successfully
+### The image mirroring completed successfully
 
 Since you are using a private container registry, you must mirror the updated images from the IBM® Entitled Registry to your private container registry at `<YOUR_PRIVATE_REGISTRY>`
 
-#### The CASE files and cluster resource files downloaded successfully
+### The CASE files and cluster resource files downloaded successfully
 
 Before upgrading IBM Scheduling, the IBM Software Hub platform, or any services, you must download the required cluster‑scoped resources—such as ClusterRoles and ClusterRoleBindings—for the components you plan to upgrade. Ensure that these files are available on the bastion node for use during the upgrade
 
 For more information, see [Downloading CASE packages](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=pruirn-downloading-case-packages-1)
 
 
-#### The permissions required for the upgrade is ready
+### The permissions required for the upgrade is ready
 
 - **OpenShift cluster permissions**
   
@@ -52,11 +52,11 @@ For more information, see [Downloading CASE packages](https://www.ibm.com/docs/e
 - **Bastion node access**
   - Access to the bastion node for executing the upgrade commands
 
-#### A pre-upgrade health check is made to ensure the cluster's readiness for upgrade
+### A pre-upgrade health check is made to ensure the cluster's readiness for upgrade
 
 - The OpenShift cluster, persistent storage, IBM Software Hub platform and services are in healthy status
 
-#### Migrating to Red Hat OpenShift certificate manager
+### Migrating to Red Hat OpenShift certificate manager
 
 The IBM Certificate manager is deprecated
 
@@ -261,7 +261,6 @@ cert-manager-webhook-9bc98cbdd-f972x       1/1     Running   0          7m40s
 
 **Note:**
 Sourcing the latest environment variables used by this environment before proceeding with the following procedures. For more information, see [Updating your environment variables script](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=cri-updating-your-environment-variables-script-1)
-
 ```bash
 source ./cpd_vars.sh
 ```
