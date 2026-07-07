@@ -6,7 +6,7 @@
 - **FileStorageClass:** ontap-nas
 - **BlockStorageClass:** ontap-nas
 - **Components:** cpd_platform, datastage_ent_plus, ws_pipelines
-- **PrivateImageRegistry:** No
+- **PrivateImageRegistry:** Yes
 
 ## Table of Contents
 1. [Pre-upgrade Tasks](#pre-upgrade-tasks)
@@ -24,7 +24,7 @@ Make sure there are no scheduled backups conflicting with the scheduled upgrade.
 
 ### 2. The image mirroring completed successfully
 
-Ensure you have access to the IBM® Entitled Registry for pulling images during the upgrade.
+Since you are using a private container registry, you must mirror the updated images from the IBM® Entitled Registry to your private container registry at `<YOUR_PRIVATE_REGISTRY>`.
 
 ### 3. The CASE files and cluster resource files downloaded successfully
 
@@ -46,7 +46,7 @@ For more information, see [Downloading CASE packages](https://www.ibm.com/docs/e
   The Cloud Pak for Data administrator role or permissions is required for upgrading the service instances.
 
 - **Registry permissions**
-  - Access to the IBM Entitled Registry for pulling images
+  - Permission to access the private image registry at `<YOUR_PRIVATE_REGISTRY>` for pushing or pulling images
 
 - **Bastion node access**
   - Access to the bastion node for executing the upgrade commands
@@ -223,21 +223,20 @@ ${OC_LOGIN}
 ```
 
 2.Create a file named dockerconfig.json based on where your cluster pulls images from.
-For IBM Entitled Registry
+For Private container registry:
+
 ```
 cat <<EOF > dockerconfig.json 
 {
   "auths": {
-    "cp.icr.io": {
-      "auth": "${IMAGE_PULL_CREDENTIALS}"
-    },
-    "icr.io":{
+    "${PRIVATE_REGISTRY_LOCATION}": {
       "auth": "${IMAGE_PULL_CREDENTIALS}"
     }
   }
 }
 EOF
 ```
+
 
 3.Create the image pull secret in the operators project for the instance.
 
